@@ -4,9 +4,15 @@ var core = require('./hakurei').core;
 var util = require('./hakurei').util;
 
 var Game = function(canvas) {
-
+	core.apply(this, arguments);
 };
 util.inherit(Game, core);
+
+Game.prototype.run = function () {
+	core.prototype.run.apply(this, arguments);
+
+	console.log("run: " + this.frame_count);
+};
 
 module.exports = Game;
 
@@ -19,14 +25,59 @@ module.exports = require("./hakurejs/index");
 'use strict';
 
 var Core = function(canvas) {
+	// メインCanvas
+	this.ctx = canvas.getContext('2d');
 
+	this.width = Number(canvas.getAttribute('width'));
+	this.height = Number(canvas.getAttribute('height'));
+
+	// シーン一覧
+	this.scenes = [];
+
+	// 経過フレーム数
+	this.frame_count = 0;
+
+	// requestAnimationFrame の ID
+	this.request_id = null;
 };
-
 Core.prototype.init = function () {
-	console.log("inited");
+	// 経過フレーム数を初期化
+	this.frame_count = 0;
+
+	// requestAnimationFrame の ID
+	this.request_id = null;
+};
+Core.prototype.isRunning = function () {
+	return this.request_id ? true : false;
 };
 Core.prototype.startRun = function () {
-	console.log("run!");
+	if(this.isRunning()) return;
+
+	this.run();
+};
+Core.prototype.run = function(){
+	/*
+	this.handleGamePad();
+
+	this.currentScene().run();
+	this.currentScene().updateDisplay();
+
+	if(Config.DEBUG) {
+		this._renderFPS();
+	}
+
+	// SEを再生
+	this.runPlaySound();
+
+	// 押下されたキーを保存しておく
+	this.before_keyflag = this.keyflag;
+	*/
+
+	// 経過フレーム数更新
+	this.frame_count++;
+
+	// 次の描画タイミングで再呼び出ししてループ
+	this.request_id = requestAnimationFrame(this.run.bind(this));
 };
 
 module.exports = Core;
@@ -41,7 +92,6 @@ module.exports = {
 },{"./core":3,"./util":5}],5:[function(require,module,exports){
 'use strict';
 var Util = {
-	// 継承
 	inherit: function( child, parent ) {
 		var getPrototype = function(p) {
 			if(Object.create) return Object.create(p);
@@ -53,7 +103,6 @@ var Util = {
 		child.prototype = getPrototype(parent.prototype);
 		child.prototype.constructor = child;
 	},
-	// ラジアン -> θ に変換
 	radianToTheta: function(radian) {
 		return (radian * 180 / Math.PI) | 0;
 	},
