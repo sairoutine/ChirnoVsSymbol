@@ -1,1 +1,1 @@
-# gulp-game-boilertemplate
+# Chirno VS Symbol
