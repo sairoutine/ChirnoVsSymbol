@@ -1,0 +1,3 @@
+[submodule "src/js/hakurejs"]
+	path = src/js/hakurejs
+	url = git@github.com:sairoutine/hakurejs.git
