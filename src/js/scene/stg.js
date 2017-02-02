@@ -3,22 +3,22 @@
 var base_scene = require('../hakurei').scene.base;
 var util = require('../hakurei').util;
 
+var Chara = require('../object/chara');
+
 var SceneStg = function(core) {
 	base_scene.apply(this, arguments);
+
+	this.chara = new Chara(this);
+	this.addObject(this.chara);
 };
 util.inherit(SceneStg, base_scene);
 
-SceneStg.prototype.init = function(){
-	console.log("init!");
-
-};
 SceneStg.prototype.draw = function(){
-	this.core.clearCanvas();
 	var ctx = this.core.ctx;
+	ctx.fillStyle = util.hexToRGBString("E2FFFC");
+	ctx.fillRect(0, 0, this.core.width, this.core.height);
 
-	ctx.fillStyle = 'rgb( 6, 40, 255 )';
-	ctx.textAlign = 'left';
-	ctx.fillText("Frame: " + this.frame_count, 30, 30);
+	base_scene.prototype.draw.apply(this, arguments);
 };
 
 module.exports = SceneStg;
