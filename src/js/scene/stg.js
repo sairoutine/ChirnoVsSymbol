@@ -5,6 +5,7 @@ var util = require('../hakurei').util;
 var PoolManager = require('../hakurei').object.pool_manager;
 
 var Chara = require('../object/chara');
+var Particle = require('../object/particle/enemy_appear');
 var EnemyAppear = require('../logic/enemy_appear');
 
 var SceneStg = function(core) {
@@ -17,6 +18,9 @@ var SceneStg = function(core) {
 	this.addObject(this.enemies);
 
 	this.enemy_appear = new EnemyAppear();
+
+
+	this.addObject(new Particle(this));
 };
 util.inherit(SceneStg, base_scene);
 
