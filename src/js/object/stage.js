@@ -12,6 +12,37 @@ var Stage = function(scene) {
 };
 util.inherit(Stage, base_particle);
 
+Stage.prototype.leftX = function() {
+	return this.x;
+};
+Stage.prototype.rightX = function() {
+	return this.x + this.width;
+};
+Stage.prototype.upY = function() {
+	return this.y;
+};
+Stage.prototype.downY = function() {
+	return this.y + this.height;
+};
+
+Stage.prototype.draw = function(){
+	base_particle.prototype.draw.apply(this, arguments);
+	var ctx = this.core.ctx;
+
+	var BAR_SIZE = 10;
+
+	ctx.fillStyle = util.hexToRGBString("608C87");
+
+	// bars which enclose stage
+	ctx.fillRect(this.leftX(), this.upY(), BAR_SIZE, this.height);
+	ctx.fillRect(this.leftX() + BAR_SIZE, this.upY(), this.width, BAR_SIZE);
+	ctx.fillRect(this.rightX(), this.upY() + BAR_SIZE, BAR_SIZE, this.height);
+	ctx.fillRect(this.leftX(), this.downY(), this.width, BAR_SIZE);
+
+};
+
+
+
 Stage.prototype.createProton = function(){
 	var canvas = this.canvas;
 	var colors = ['#529B88', '#CDD180', '#FFFA32', '#FB6255', '#FB4A53', '#FF4E50', '#F9D423'];

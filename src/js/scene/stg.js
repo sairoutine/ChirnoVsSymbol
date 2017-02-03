@@ -48,29 +48,21 @@ SceneStg.prototype.beforeDraw = function(){
 		this.stage.y -= y;
 
 		// forbid chara out of display
-		if(this.chara.x < this.stage.x) {
+		if(this.chara.x < this.stage.leftX()) {
 			this.stage.x = this.chara.x;
 		}
-		else if(this.chara.x > this.stage.x + this.stage.width) {
+		else if(this.chara.x > this.stage.rightX()) {
 			this.stage.x = this.chara.x - this.stage.width;
 		}
-		if(this.chara.y < this.stage.y) {
+		if(this.chara.y < this.stage.upY()) {
 			this.stage.y = this.chara.y;
 		}
-		else if(this.chara.y > this.stage.y + this.stage.height) {
+		else if(this.chara.y > this.stage.downY()) {
 			this.stage.y = this.chara.y - this.stage.height;
 		}
 
 	}
 
-};
-
-var SCROLL_RANGE = 50;
-SceneStg.prototype.isCharaInScrollXArea = function () {
-	return this.core.width/2 + SCROLL_RANGE > this.chara.x && this.chara.x > this.core.width/2 - SCROLL_RANGE;
-};
-SceneStg.prototype.isCharaOutScrollYArea = function () {
-	return this.core.height/2 + SCROLL_RANGE > this.chara.y || this.chara.y > this.core.height/2 - SCROLL_RANGE;
 };
 
 SceneStg.prototype.draw = function(){
