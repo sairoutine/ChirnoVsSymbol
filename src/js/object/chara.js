@@ -84,7 +84,8 @@ Chara.prototype.draw = function(){
 	ctx.translate(this.x, this.y);
 
 	// rotate
-	//ctx.rotate(this.rotate);
+	var rotate = util.thetaToRadian(this.velocity.theta);
+	ctx.rotate(rotate);
 
 	var width  = this.spriteWidth()  * this.scale();
 	var height = this.spriteHeight() * this.scale();
