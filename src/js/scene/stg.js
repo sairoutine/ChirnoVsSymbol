@@ -3,9 +3,10 @@
 var base_scene = require('../hakurei').scene.base;
 var util = require('../hakurei').util;
 var PoolManager = require('../hakurei').object.pool_manager;
+var CONSTANT = require('../hakurei').constant;
 
 var Chara = require('../object/chara');
-var Particle = require('../object/particle/enemy_appear');
+var Stage = require('../object/stage');
 var EnemyAppear = require('../logic/enemy_appear');
 
 var SceneStg = function(core) {
@@ -20,7 +21,8 @@ var SceneStg = function(core) {
 	this.enemy_appear = new EnemyAppear();
 
 
-	this.addObject(new Particle(this));
+	this.stage = new Stage(this);
+	this.addObject(this.stage);
 };
 util.inherit(SceneStg, base_scene);
 
@@ -37,6 +39,38 @@ SceneStg.prototype.beforeDraw = function(){
 	if (this.enemy_appear.is_occur()) {
 		this.enemies.addObjects(this.enemy_appear.getAppearEnemies());
 	}
+
+	if(this.core.isKeyDown(CONSTANT.BUTTON_Z)) {
+		var x = this.chara.calcMoveX();
+		var y = this.chara.calcMoveY();
+
+		this.stage.x -= x;
+		this.stage.y -= y;
+
+		// forbid chara out of display
+		if(this.chara.x < this.stage.x) {
+			this.stage.x = this.chara.x;
+		}
+		else if(this.chara.x > this.stage.x + this.stage.width) {
+			this.stage.x = this.chara.x - this.stage.width;
+		}
+		if(this.chara.y < this.stage.y) {
+			this.stage.y = this.chara.y;
+		}
+		else if(this.chara.y > this.stage.y + this.stage.height) {
+			this.stage.y = this.chara.y - this.stage.height;
+		}
+
+	}
+
+};
+
+var SCROLL_RANGE = 50;
+SceneStg.prototype.isCharaInScrollXArea = function () {
+	return this.core.width/2 + SCROLL_RANGE > this.chara.x && this.chara.x > this.core.width/2 - SCROLL_RANGE;
+};
+SceneStg.prototype.isCharaOutScrollYArea = function () {
+	return this.core.height/2 + SCROLL_RANGE > this.chara.y || this.chara.y > this.core.height/2 - SCROLL_RANGE;
 };
 
 SceneStg.prototype.draw = function(){
