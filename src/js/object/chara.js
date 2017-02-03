@@ -72,13 +72,52 @@ Chara.prototype.calcMoveY = function() {
 };
 
 Chara.prototype.draw = function(){
+	base_object.prototype.draw.apply(this, arguments);
+
+	var image = this.core.image_loader.getImage("chara");
 
 	var ctx = this.core.ctx;
-	ctx.fillStyle = 'rgb( 6, 40, 255 )';
-	ctx.textAlign = 'left';
-	ctx.fillText("Frame: " + this.frame_count, this.x, this.y);
 
-	base_object.prototype.draw.apply(this, arguments);
+	ctx.save();
+
+	// set position
+	ctx.translate(this.x, this.y);
+
+	// rotate
+	//ctx.rotate(this.rotate);
+
+	var width  = this.spriteWidth()  * this.scale();
+	var height = this.spriteHeight() * this.scale();
+
+	ctx.drawImage(image,
+		// スプライトの取得位置
+		this.spriteWidth()  * this.spriteIndexX(), this.spriteHeight() * this.spriteIndexY(),
+		// スプライトのサイズ
+		this.spriteWidth(),                   this.spriteHeight(),
+		// x, yがオブジェクトの真ん中を指定しているので、左上をx, yの始点に変更
+		-width/2,                             -height/2,
+		// オブジェクトのゲーム上のサイズ
+		width,                                height
+	);
+	ctx.restore();
 };
+
+Chara.prototype.spriteIndexX = function(){
+	return 3;
+};
+Chara.prototype.spriteIndexY = function(){
+	return 0;
+};
+
+Chara.prototype.spriteWidth = function(){
+	return 80;
+};
+Chara.prototype.spriteHeight = function(){
+	return 96;
+};
+Chara.prototype.scale = function(){
+	return 1;
+};
+
 
 module.exports = Chara;
