@@ -11,6 +11,7 @@ util.inherit(SceneLoading, base_scene);
 SceneLoading.prototype.init = function() {
 	base_scene.prototype.init.apply(this, arguments);
 	this.core.image_loader.loadImage("chara", "./image/chirno.png");
+	this.core.image_loader.loadImage("shot", "./image/shot.png");
 };
 
 SceneLoading.prototype.beforeDraw = function() {

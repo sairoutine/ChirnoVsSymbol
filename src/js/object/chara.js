@@ -4,6 +4,9 @@ var util = require('../hakurei').util;
 
 var CONSTANT = require('../hakurei').constant;
 
+
+var SHOT_SPAN = 6;
+
 var Chara = function(scene) {
 	sprite.apply(this, arguments);
 
@@ -31,6 +34,8 @@ var BUTTON_RIGHT_MAX_THETA = 0;
 
 Chara.prototype.beforeDraw = function(){
 	sprite.prototype.beforeDraw.apply(this, arguments);
+
+	// decide theta to move
 	if(this.core.isKeyDown(CONSTANT.BUTTON_LEFT) &&
 			this.core.isKeyDown(CONSTANT.BUTTON_DOWN)) {
 		this.velocity.theta=BUTTON_DOWN_LEFT_MAX_THETA;
@@ -59,16 +64,26 @@ Chara.prototype.beforeDraw = function(){
 	else if(this.core.isKeyDown(CONSTANT.BUTTON_RIGHT)) {
 		this.velocity.theta=BUTTON_RIGHT_MAX_THETA;
 	}
+
+	// shot automatically
+	if (this.frame_count % SHOT_SPAN === 0) {
+		var magnitude = 12;
+		var theta = this.velocity.theta;
+		this.scene.shots.create(this.x, this.y, theta);
+		this.scene.shots.create(this.x, this.y, theta).moveByVelocity({magnitude: magnitude, theta: theta + 90});
+		this.scene.shots.create(this.x, this.y, theta).moveByVelocity({magnitude: magnitude, theta: theta - 90});
+	}
+};
+Chara.prototype.move = function() {
+	// chara doesn't move because stage does move
 };
 
 Chara.prototype.calcMoveX = function() {
-	var move_x = this.velocity.magnitude * Math.cos(util.thetaToRadian(this.velocity.theta));
-	return move_x;
+	return util.calcMoveXByVelocity(this.velocity);
 };
 
 Chara.prototype.calcMoveY = function() {
-	var move_y = this.velocity.magnitude * Math.sin(util.thetaToRadian(this.velocity.theta));
-	return move_y;
+	return util.calcMoveYByVelocity(this.velocity);
 };
 
 Chara.prototype.spriteName = function(){

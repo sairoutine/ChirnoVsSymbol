@@ -7,22 +7,26 @@ var CONSTANT = require('../hakurei').constant;
 
 var Chara = require('../object/chara');
 var Stage = require('../object/stage');
+var Enemy = require('../object/enemy');
+var Shot  = require('../object/shot');
 var EnemyAppear = require('../logic/enemy_appear');
 
 var SceneStg = function(core) {
 	base_scene.apply(this, arguments);
 
+	this.stage = new Stage(this);
+	this.addObject(this.stage);
+
+	this.shots = new PoolManager(this, Shot);
+	this.addObject(this.shots);
+
 	this.chara = new Chara(this);
 	this.addObject(this.chara);
 
-	this.enemies = new PoolManager(this);
+	this.enemies = new PoolManager(this, Enemy);
 	this.addObject(this.enemies);
 
-	this.enemy_appear = new EnemyAppear();
-
-
-	this.stage = new Stage(this);
-	this.addObject(this.stage);
+	this.enemy_appear = new EnemyAppear(this.enemies);
 };
 util.inherit(SceneStg, base_scene);
 
@@ -35,10 +39,7 @@ SceneStg.prototype.beforeDraw = function(){
 	base_scene.prototype.beforeDraw.apply(this, arguments);
 
 	// appear enemy
-	this.enemy_appear.update();
-	if (this.enemy_appear.is_occur()) {
-		this.enemies.addObjects(this.enemy_appear.getAppearEnemies());
-	}
+	this.enemy_appear.exec();
 
 	if(this.core.isKeyDown(CONSTANT.BUTTON_Z)) {
 		var x = this.chara.calcMoveX();
