@@ -9,19 +9,6 @@ var Stage = function(scene) {
 };
 util.inherit(Stage, base_object);
 
-Stage.prototype.leftX = function() {
-	return this.x;
-};
-Stage.prototype.rightX = function() {
-	return this.x + this.width;
-};
-Stage.prototype.upY = function() {
-	return this.y;
-};
-Stage.prototype.downY = function() {
-	return this.y + this.height;
-};
-
 Stage.prototype.draw = function(){
 	base_object.prototype.draw.apply(this, arguments);
 	var ctx = this.core.ctx;
