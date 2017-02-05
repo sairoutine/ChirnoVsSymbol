@@ -349,7 +349,8 @@ ObjectBase.prototype.move = function() {
 	this.x += x;
 	this.y += y;
 };
-
+ObjectBase.prototype.onCollision = function(){
+};
 
 ObjectBase.prototype.width = function() {
 	return 0;
@@ -375,6 +376,51 @@ ObjectBase.prototype.globalUpY = function() {
 ObjectBase.prototype.globalDownY = function() {
 	return this.scene.x + this.y + this.height()/2;
 };
+
+ObjectBase.prototype.collisionWidth = function() {
+	return 0;
+};
+ObjectBase.prototype.collisionHeight = function() {
+	return 0;
+};
+
+ObjectBase.prototype.checkCollisionWithObject = function(obj1) {
+	var obj2 = this;
+	if(obj1.checkCollision(obj2)) {
+		obj1.onCollision(obj2);
+		obj2.onCollision(obj1);
+		return true;
+	}
+
+	return false;
+};
+ObjectBase.prototype.checkCollision = function(obj) {
+	if(Math.abs(this.x - obj.x) < this.collisionWidth()/2 + obj.collisionWidth()/2 &&
+		Math.abs(this.y - obj.y) < this.collisionHeight()/2 + obj.collisionHeight()/2) {
+		return true;
+	}
+
+	return false;
+};
+
+ObjectBase.prototype.getCollisionLeftX = function() {
+	return this.x - this.collisionWidth() / 2;
+};
+
+ObjectBase.prototype.getCollisionUpY = function() {
+	return this.y - this.collisionHeight() / 2;
+};
+
+
+
+
+
+
+
+
+
+
+
 ObjectBase.prototype.setVelocity = function(velocity) {
 	this.velocity = velocity;
 };
@@ -385,7 +431,7 @@ module.exports = ObjectBase;
 'use strict';
 
 // TODO: add pooling logic
-
+// TODO: split manager class and pool manager class
 var base_object = require('./base');
 var util = require('../util');
 
@@ -433,6 +479,39 @@ PoolManager.prototype.create = function() {
 
 	return object;
 };
+PoolManager.prototype.remove = function(id) {
+	delete this.objects[id];
+};
+
+PoolManager.prototype.checkCollisionWithObject = function(obj1) {
+	for(var id in this.objects) {
+		var obj2 = this.objects[id];
+		if(obj1.checkCollision(obj2)) {
+			obj1.onCollision(obj2);
+			obj2.onCollision(obj1);
+		}
+	}
+};
+
+PoolManager.prototype.checkCollisionWithManager = function(manager) {
+	for(var obj1_id in this.objects) {
+		for(var obj2_id in manager.objects) {
+			if(this.objects[obj1_id].checkCollision(manager.objects[obj2_id])) {
+				var obj1 = this.objects[obj1_id];
+				var obj2 = manager.objects[obj2_id];
+
+				obj1.onCollision(obj2);
+				obj2.onCollision(obj1);
+
+				// do not check died object twice
+				if (!this.objects[obj1_id]) {
+					break;
+				}
+			}
+		}
+	}
+};
+
 module.exports = PoolManager;
 
 },{"../util":11,"./base":7}],9:[function(require,module,exports){
@@ -838,6 +917,7 @@ module.exports = Chara;
 'use strict';
 var base_object = require('../hakurei').object.base;
 var util = require('../hakurei').util;
+var Shot  = require('../object/shot');
 
 var Enemy = function(scene) {
 	base_object.apply(this, arguments);
@@ -846,6 +926,8 @@ util.inherit(Enemy, base_object);
 Enemy.prototype.init = function(x, y, magnitude, hp) {
 	base_object.prototype.init.apply(this, arguments);
 
+	// hp
+	this.hp = hp;
 	// color
 	var COLORS = ["BCB6FF","B8E1FF","94FBAB","82ABA1"];
 	var color_index = Math.floor(Math.random() * COLORS.length);
@@ -911,13 +993,45 @@ Enemy.prototype.drawCircle = function() {
 };
 
 
+Enemy.prototype.onCollision = function(obj) {
+	if(!(obj instanceof Shot)) { return; }
+
+	// reduce HP
+	this.hp--;
+
+	// die
+	if(this.hp <= 0) {
+		this.die();
+	}
+};
+
+Enemy.prototype.collisionWidth = function(){
+	return 20;
+};
+Enemy.prototype.collisionHeight = function(){
+	return 20;
+};
+Enemy.prototype.die = function() {
+	// remove me
+	this.scene.enemies.remove(this.id);
+
+	// SE
+	//this.game.playSound('enemy_vanish');
+
+	// add score
+	this.scene.score += 100;
+
+	// create effect
+	//this.stage.effect_manager.create(this.x, this.y);
+};
+
 
 
 
 
 module.exports = Enemy;
 
-},{"../hakurei":2}],16:[function(require,module,exports){
+},{"../hakurei":2,"../object/shot":16}],16:[function(require,module,exports){
 'use strict';
 var sprite = require('../hakurei').object.sprite;
 var util = require('../hakurei').util;
@@ -958,6 +1072,19 @@ Shot.prototype.spriteHeight = function(){
 Shot.prototype.rotateAdjust = function(){
 	return 90;
 };
+
+Shot.prototype.collisionWidth = function(){
+	return 18;
+};
+Shot.prototype.collisionHeight = function(){
+	return 18;
+};
+Shot.prototype.onCollision = function(obj) {
+	this.scene.shots.remove(this.id);
+};
+
+
+
 
 
 
@@ -1068,6 +1195,7 @@ SceneStg.prototype.beforeDraw = function(){
 		this.y = -this.chara.y + this.core.height/2;
 	}
 
+	this.enemies.checkCollisionWithManager(this.shots);
 };
 
 SceneStg.prototype.draw = function(){
