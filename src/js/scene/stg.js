@@ -63,6 +63,7 @@ SceneStg.prototype.beforeDraw = function(){
 		this.y = -this.chara.y + this.core.height/2;
 	}
 
+	this.enemies.checkCollisionWithManager(this.shots);
 };
 
 SceneStg.prototype.draw = function(){

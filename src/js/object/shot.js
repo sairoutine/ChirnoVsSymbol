@@ -39,6 +39,19 @@ Shot.prototype.rotateAdjust = function(){
 	return 90;
 };
 
+Shot.prototype.collisionWidth = function(){
+	return 18;
+};
+Shot.prototype.collisionHeight = function(){
+	return 18;
+};
+Shot.prototype.onCollision = function(obj) {
+	this.scene.shots.remove(this.id);
+};
+
+
+
+
 
 
 

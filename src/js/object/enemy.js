@@ -1,6 +1,7 @@
 'use strict';
 var base_object = require('../hakurei').object.base;
 var util = require('../hakurei').util;
+var Shot  = require('../object/shot');
 
 var Enemy = function(scene) {
 	base_object.apply(this, arguments);
@@ -9,6 +10,8 @@ util.inherit(Enemy, base_object);
 Enemy.prototype.init = function(x, y, magnitude, hp) {
 	base_object.prototype.init.apply(this, arguments);
 
+	// hp
+	this.hp = hp;
 	// color
 	var COLORS = ["BCB6FF","B8E1FF","94FBAB","82ABA1"];
 	var color_index = Math.floor(Math.random() * COLORS.length);
@@ -73,6 +76,38 @@ Enemy.prototype.drawCircle = function() {
 	ctx.restore();
 };
 
+
+Enemy.prototype.onCollision = function(obj) {
+	if(!(obj instanceof Shot)) { return; }
+
+	// reduce HP
+	this.hp--;
+
+	// die
+	if(this.hp <= 0) {
+		this.die();
+	}
+};
+
+Enemy.prototype.collisionWidth = function(){
+	return 20;
+};
+Enemy.prototype.collisionHeight = function(){
+	return 20;
+};
+Enemy.prototype.die = function() {
+	// remove me
+	this.scene.enemies.remove(this.id);
+
+	// SE
+	//this.game.playSound('enemy_vanish');
+
+	// add score
+	this.scene.score += 100;
+
+	// create effect
+	//this.stage.effect_manager.create(this.x, this.y);
+};
 
 
 
