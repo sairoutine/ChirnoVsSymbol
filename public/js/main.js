@@ -21,7 +21,7 @@ Game.prototype.init = function () {
 
 module.exports = Game;
 
-},{"./hakurei":2,"./scene/loading":18,"./scene/stg":19}],2:[function(require,module,exports){
+},{"./hakurei":2,"./scene/loading":17,"./scene/stg":18}],2:[function(require,module,exports){
 'use strict';
 
 module.exports = require("./hakurejs/index");
@@ -317,8 +317,8 @@ var ObjectBase = function(scene) {
 
 	this.frame_count = 0;
 
-	this.x = 0;
-	this.y = 0;
+	this.x = 0; // local center x
+	this.y = 0; // local center y
 
 	this.velocity = {magnitude:0, theta:0};
 };
@@ -351,18 +351,29 @@ ObjectBase.prototype.move = function() {
 };
 
 
-
-ObjectBase.prototype.leftX = function() {
-	return this.x;
+ObjectBase.prototype.width = function() {
+	return 0;
 };
-ObjectBase.prototype.rightX = function() {
-	return this.x + this.width;
+ObjectBase.prototype.height = function() {
+	return 0;
 };
-ObjectBase.prototype.upY = function() {
-	return this.y;
+ObjectBase.prototype.globalCenterX = function() {
+	return this.scene.x + this.x;
 };
-ObjectBase.prototype.downY = function() {
-	return this.y + this.height;
+ObjectBase.prototype.globalCenterY = function() {
+	return this.scene.y + this.y;
+};
+ObjectBase.prototype.globalLeftX = function() {
+	return this.scene.x + this.x - this.width()/2;
+};
+ObjectBase.prototype.globalRightX = function() {
+	return this.scene.x + this.x + this.width()/2;
+};
+ObjectBase.prototype.globalUpY = function() {
+	return this.scene.x + this.y - this.height()/2;
+};
+ObjectBase.prototype.globalDownY = function() {
+	return this.scene.x + this.y + this.height()/2;
 };
 ObjectBase.prototype.setVelocity = function(velocity) {
 	this.velocity = velocity;
@@ -463,7 +474,7 @@ Sprite.prototype.draw = function(){
 	ctx.save();
 
 	// set position
-	ctx.translate(this.x, this.y);
+	ctx.translate(this.globalCenterX(), this.globalCenterY());
 
 	// rotate
 	var rotate = util.thetaToRadian(this.velocity.theta + this.rotateAdjust());
@@ -526,6 +537,11 @@ module.exports = Sprite;
 
 var SceneBase = function(core) {
 	this.core = core;
+	this.width = core.width;
+	this.height = core.height;
+
+	this.x = 0;
+	this.y = 0;
 
 	this.frame_count = 0;
 
@@ -533,6 +549,9 @@ var SceneBase = function(core) {
 };
 
 SceneBase.prototype.init = function(){
+	this.x = 0;
+	this.y = 0;
+
 	this.frame_count = 0;
 
 	for(var i = 0, len = this.objects.length; i < len; i++) {
@@ -609,23 +628,37 @@ module.exports = Util;
 },{}],12:[function(require,module,exports){
 'use strict';
 
-var EnemyAppear = function(enemy_pool_manager) {
-	this.enemies = enemy_pool_manager;
+var EnemyAppear = function(stg_scene) {
+	this.enemies = stg_scene.enemies;
+	this.chara   = stg_scene.chara;
+	this.scene   = stg_scene;
+
+	this.frame_count = 0;
 };
 
 EnemyAppear.prototype.init = function() {
+	this.frame_count = 0;
 };
 EnemyAppear.prototype.exec = function() {
 	this.update();
 	if (this.is_occur()) {
-		this.enemies.addObjects(this.getAppearEnemies());
+		this.create();
 	}
 };
 EnemyAppear.prototype.update = function() {
+	this.frame_count++;
 };
 EnemyAppear.prototype.is_occur = function() {
+	return this.frame_count % 20 === 0;
 };
-EnemyAppear.prototype.getAppearEnemies = function() {
+EnemyAppear.prototype.create = function() {
+	var magnitude = Math.floor(Math.random() * 5 + 1);
+	var hp = Math.floor(Math.random() * 50);
+	for (var i = 0; i < 3; i++) {
+		var x = Math.floor(Math.random() * this.chara.x + 100);
+		var y = Math.floor(Math.random() * this.chara.y + 100);
+		this.enemies.create(x, y, magnitude, hp);
+	}
 };
 module.exports = EnemyAppear;
 
@@ -714,8 +747,8 @@ util.inherit(Chara, sprite);
 Chara.prototype.init = function(){
 	sprite.prototype.init.apply(this, arguments);
 
-	this.x = this.core.width/2;
-	this.y = this.core.height/2;
+	this.x = this.scene.width/2;
+	this.y = this.scene.height/2;
 };
 
 var BUTTON_UP_RIGHT_MAX_THETA = 315;
@@ -764,23 +797,22 @@ Chara.prototype.beforeDraw = function(){
 
 	// shot automatically
 	if (this.frame_count % SHOT_SPAN === 0) {
-		var magnitude = 12;
+		var span = 15;
+
+		// shot speed
+		var magnitude = 15;
+
 		var theta = this.velocity.theta;
-		this.scene.shots.create(this.x, this.y, theta);
-		this.scene.shots.create(this.x, this.y, theta).moveByVelocity({magnitude: magnitude, theta: theta + 90});
-		this.scene.shots.create(this.x, this.y, theta).moveByVelocity({magnitude: magnitude, theta: theta - 90});
+		this.scene.shots.create(this.x, this.y, magnitude, theta);
+		this.scene.shots.create(this.x, this.y, magnitude, theta).moveByVelocity({magnitude: span, theta: theta + 90});
+		this.scene.shots.create(this.x, this.y, magnitude, theta).moveByVelocity({magnitude: span, theta: theta - 90});
 	}
 };
 Chara.prototype.move = function() {
-	// chara doesn't move because stage does move
-};
+	// chara moves only pressed Z
+	if(!this.core.isKeyDown(CONSTANT.BUTTON_Z)) return;
 
-Chara.prototype.calcMoveX = function() {
-	return util.calcMoveXByVelocity(this.velocity);
-};
-
-Chara.prototype.calcMoveY = function() {
-	return util.calcMoveYByVelocity(this.velocity);
+	sprite.prototype.move.apply(this, arguments);
 };
 
 Chara.prototype.spriteName = function(){
@@ -811,6 +843,77 @@ var Enemy = function(scene) {
 	base_object.apply(this, arguments);
 };
 util.inherit(Enemy, base_object);
+Enemy.prototype.init = function(x, y, magnitude, hp) {
+	base_object.prototype.init.apply(this, arguments);
+
+	// color
+	var COLORS = ["BCB6FF","B8E1FF","94FBAB","82ABA1"];
+	var color_index = Math.floor(Math.random() * COLORS.length);
+	this.color = COLORS[color_index];
+
+	// symbol type
+	this.type = Math.floor(Math.random() * 3); // 0: box, 1: triangle, 2: circle
+	this.x = x;
+	this.y = y;
+	this.setVelocity({magnitude: magnitude, theta: 0});
+};
+
+Enemy.prototype.draw = function() {
+	base_object.prototype.draw.apply(this, arguments);
+
+	switch (this.type) {
+		case 0:
+			this.drawBox();
+			break;
+		case 1:
+			this.drawTriangle();
+			break;
+		case 2:
+			this.drawCircle();
+			break;
+		default:
+			throw new Error("unknown enemy type");
+	}
+};
+Enemy.prototype.drawBox = function() {
+	var ctx = this.core.ctx;
+
+	var BAR_SIZE = 20;
+	ctx.save();
+	ctx.fillStyle = util.hexToRGBString(this.color);
+	ctx.translate(this.globalCenterX(), this.globalCenterY());
+	ctx.fillRect(0, 0, BAR_SIZE, BAR_SIZE);
+	ctx.restore();
+};
+Enemy.prototype.drawTriangle = function() {
+	var ctx = this.core.ctx;
+
+	ctx.save();
+	ctx.fillStyle = util.hexToRGBString(this.color);
+	ctx.translate(this.globalCenterX(), this.globalCenterY());
+	ctx.beginPath();
+	ctx.moveTo(75,50);
+	ctx.lineTo(100,75);
+	ctx.lineTo(100,25);
+	ctx.fill();
+	ctx.restore();
+};
+Enemy.prototype.drawCircle = function() {
+	var ctx = this.core.ctx;
+
+	var RADIUS = 20;
+	ctx.save();
+	ctx.fillStyle = util.hexToRGBString(this.color);
+	ctx.beginPath();
+	ctx.arc(this.globalCenterX(), this.globalCenterY(), RADIUS, 0, Math.PI*2, true);
+	ctx.fill();
+	ctx.restore();
+};
+
+
+
+
+
 
 module.exports = Enemy;
 
@@ -819,19 +922,18 @@ module.exports = Enemy;
 var sprite = require('../hakurei').object.sprite;
 var util = require('../hakurei').util;
 
-var MAGNITUDE = 10;
 
 var Shot = function(scene) {
 	sprite.apply(this, arguments);
 };
 util.inherit(Shot, sprite);
 
-Shot.prototype.init = function(x, y, theta) {
+Shot.prototype.init = function(x, y, magnitude, theta) {
 	sprite.prototype.init.apply(this, arguments);
 
 	this.x = x;
 	this.y = y;
-	this.setVelocity({magnitude: MAGNITUDE, theta: theta});
+	this.setVelocity({magnitude: magnitude, theta: theta});
 };
 
 Shot.prototype.moveByVelocity = function(velocity){
@@ -863,36 +965,6 @@ Shot.prototype.rotateAdjust = function(){
 module.exports = Shot;
 
 },{"../hakurei":2}],17:[function(require,module,exports){
-'use strict';
-var base_object = require('../hakurei').object.base;
-var util = require('../hakurei').util;
-
-var Stage = function(scene) {
-	base_object.apply(this, arguments);
-	this.width  = 2000;
-	this.height = 2000;
-};
-util.inherit(Stage, base_object);
-
-Stage.prototype.draw = function(){
-	base_object.prototype.draw.apply(this, arguments);
-	var ctx = this.core.ctx;
-
-	var BAR_SIZE = 10;
-
-	ctx.fillStyle = util.hexToRGBString("608C87");
-
-	// bars which enclose stage
-	ctx.fillRect(this.leftX(), this.upY(), BAR_SIZE, this.height);
-	ctx.fillRect(this.leftX() + BAR_SIZE, this.upY(), this.width, BAR_SIZE);
-	ctx.fillRect(this.rightX(), this.upY() + BAR_SIZE, BAR_SIZE, this.height);
-	ctx.fillRect(this.leftX(), this.downY(), this.width, BAR_SIZE);
-
-};
-
-module.exports = Stage;
-
-},{"../hakurei":2}],18:[function(require,module,exports){
 'use strict';
 
 var base_scene = require('../hakurei').scene.base;
@@ -930,7 +1002,7 @@ SceneLoading.prototype.draw = function(){
 
 module.exports = SceneLoading;
 
-},{"../hakurei":2}],19:[function(require,module,exports){
+},{"../hakurei":2}],18:[function(require,module,exports){
 'use strict';
 
 var base_scene = require('../hakurei').scene.base;
@@ -939,7 +1011,6 @@ var PoolManager = require('../hakurei').object.pool_manager;
 var CONSTANT = require('../hakurei').constant;
 
 var Chara = require('../object/chara');
-var Stage = require('../object/stage');
 var Enemy = require('../object/enemy');
 var Shot  = require('../object/shot');
 var EnemyAppear = require('../logic/enemy_appear');
@@ -947,8 +1018,8 @@ var EnemyAppear = require('../logic/enemy_appear');
 var SceneStg = function(core) {
 	base_scene.apply(this, arguments);
 
-	this.stage = new Stage(this);
-	this.addObject(this.stage);
+	this.width  = 1500;
+	this.height = 1500;
 
 	this.shots = new PoolManager(this, Shot);
 	this.addObject(this.shots);
@@ -959,13 +1030,16 @@ var SceneStg = function(core) {
 	this.enemies = new PoolManager(this, Enemy);
 	this.addObject(this.enemies);
 
-	this.enemy_appear = new EnemyAppear(this.enemies);
+	this.enemy_appear = new EnemyAppear(this);
 };
 util.inherit(SceneStg, base_scene);
 
 SceneStg.prototype.init = function(){
 	base_scene.prototype.init.apply(this, arguments);
 	this.enemy_appear.init();
+
+	this.x = -this.chara.x + this.core.width/2;
+	this.y = -this.chara.y + this.core.height/2;
 };
 
 SceneStg.prototype.beforeDraw = function(){
@@ -975,26 +1049,23 @@ SceneStg.prototype.beforeDraw = function(){
 	this.enemy_appear.exec();
 
 	if(this.core.isKeyDown(CONSTANT.BUTTON_Z)) {
-		var x = this.chara.calcMoveX();
-		var y = this.chara.calcMoveY();
-
-		this.stage.x -= x;
-		this.stage.y -= y;
-
-		// forbid chara out of display
-		if(this.chara.x < this.stage.leftX()) {
-			this.stage.x = this.chara.x;
+		// forbid chara out of stage
+		if(this.chara.x < 0) {
+			this.chara.x = 0;
 		}
-		else if(this.chara.x > this.stage.rightX()) {
-			this.stage.x = this.chara.x - this.stage.width;
+		else if(this.chara.x > this.width) {
+			this.chara.x = this.width;
 		}
-		if(this.chara.y < this.stage.upY()) {
-			this.stage.y = this.chara.y;
+		if(this.chara.y < 0) {
+			this.chara.y = 0;
 		}
-		else if(this.chara.y > this.stage.downY()) {
-			this.stage.y = this.chara.y - this.stage.height;
+		else if(this.chara.y > this.height) {
+			this.chara.y = this.height;
 		}
 
+		// scrolling background
+		this.x = -this.chara.x + this.core.width/2;
+		this.y = -this.chara.y + this.core.height/2;
 	}
 
 };
@@ -1004,7 +1075,17 @@ SceneStg.prototype.draw = function(){
 
 	// draw background color
 	ctx.fillStyle = util.hexToRGBString("E2FFFC");
-	ctx.fillRect(0, 0, this.core.width, this.core.height);
+	ctx.fillRect(0, 0, this.width, this.height);
+
+	// bars which enclose stage
+	var BAR_SIZE = 10;
+
+	ctx.fillStyle = util.hexToRGBString("608C87");
+
+	ctx.fillRect(this.x, this.y, BAR_SIZE, this.height);
+	ctx.fillRect(this.x + BAR_SIZE, this.y, this.width, BAR_SIZE);
+	ctx.fillRect(this.x + this.width, this.y + BAR_SIZE, BAR_SIZE, this.height);
+	ctx.fillRect(this.x, this.y + this.height, this.width, BAR_SIZE);
 
 	// draw objects
 	base_scene.prototype.draw.apply(this, arguments);
@@ -1012,4 +1093,4 @@ SceneStg.prototype.draw = function(){
 
 module.exports = SceneStg;
 
-},{"../hakurei":2,"../logic/enemy_appear":12,"../object/chara":14,"../object/enemy":15,"../object/shot":16,"../object/stage":17}]},{},[13]);
+},{"../hakurei":2,"../logic/enemy_appear":12,"../object/chara":14,"../object/enemy":15,"../object/shot":16}]},{},[13]);
