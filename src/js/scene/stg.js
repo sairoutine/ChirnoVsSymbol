@@ -26,7 +26,7 @@ var SceneStg = function(core) {
 	this.enemies = new PoolManager(this, Enemy);
 	this.addObject(this.enemies);
 
-	this.enemy_appear = new EnemyAppear(this.enemies);
+	this.enemy_appear = new EnemyAppear(this);
 };
 util.inherit(SceneStg, base_scene);
 

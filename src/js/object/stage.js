@@ -15,6 +15,7 @@ Stage.prototype.draw = function(){
 
 	var BAR_SIZE = 10;
 
+	ctx.save();
 	ctx.fillStyle = util.hexToRGBString("608C87");
 
 	// bars which enclose stage
@@ -22,6 +23,7 @@ Stage.prototype.draw = function(){
 	ctx.fillRect(this.leftX() + BAR_SIZE, this.upY(), this.width, BAR_SIZE);
 	ctx.fillRect(this.rightX(), this.upY() + BAR_SIZE, BAR_SIZE, this.height);
 	ctx.fillRect(this.leftX(), this.downY(), this.width, BAR_SIZE);
+	ctx.restore();
 
 };
 
