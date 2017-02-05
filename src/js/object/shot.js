@@ -2,19 +2,18 @@
 var sprite = require('../hakurei').object.sprite;
 var util = require('../hakurei').util;
 
-var MAGNITUDE = 10;
 
 var Shot = function(scene) {
 	sprite.apply(this, arguments);
 };
 util.inherit(Shot, sprite);
 
-Shot.prototype.init = function(x, y, theta) {
+Shot.prototype.init = function(x, y, magnitude, theta) {
 	sprite.prototype.init.apply(this, arguments);
 
 	this.x = x;
 	this.y = y;
-	this.setVelocity({magnitude: MAGNITUDE, theta: theta});
+	this.setVelocity({magnitude: magnitude, theta: theta});
 };
 
 Shot.prototype.moveByVelocity = function(velocity){

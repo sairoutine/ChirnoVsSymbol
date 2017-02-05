@@ -44,7 +44,8 @@ Enemy.prototype.drawBox = function() {
 	var BAR_SIZE = 20;
 	ctx.save();
 	ctx.fillStyle = util.hexToRGBString(this.color);
-	ctx.fillRect(this.x, this.y, BAR_SIZE, BAR_SIZE);
+	ctx.translate(this.globalCenterX(), this.globalCenterY());
+	ctx.fillRect(0, 0, BAR_SIZE, BAR_SIZE);
 	ctx.restore();
 };
 Enemy.prototype.drawTriangle = function() {
@@ -52,7 +53,7 @@ Enemy.prototype.drawTriangle = function() {
 
 	ctx.save();
 	ctx.fillStyle = util.hexToRGBString(this.color);
-	ctx.translate(this.x, this.y);
+	ctx.translate(this.globalCenterX(), this.globalCenterY());
 	ctx.beginPath();
 	ctx.moveTo(75,50);
 	ctx.lineTo(100,75);
@@ -67,7 +68,7 @@ Enemy.prototype.drawCircle = function() {
 	ctx.save();
 	ctx.fillStyle = util.hexToRGBString(this.color);
 	ctx.beginPath();
-	ctx.arc(this.x, this.y, RADIUS, 0, Math.PI*2, true);
+	ctx.arc(this.globalCenterX(), this.globalCenterY(), RADIUS, 0, Math.PI*2, true);
 	ctx.fill();
 	ctx.restore();
 };

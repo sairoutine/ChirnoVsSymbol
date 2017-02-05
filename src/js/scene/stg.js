@@ -6,7 +6,6 @@ var PoolManager = require('../hakurei').object.pool_manager;
 var CONSTANT = require('../hakurei').constant;
 
 var Chara = require('../object/chara');
-var Stage = require('../object/stage');
 var Enemy = require('../object/enemy');
 var Shot  = require('../object/shot');
 var EnemyAppear = require('../logic/enemy_appear');
@@ -14,8 +13,8 @@ var EnemyAppear = require('../logic/enemy_appear');
 var SceneStg = function(core) {
 	base_scene.apply(this, arguments);
 
-	this.stage = new Stage(this);
-	this.addObject(this.stage);
+	this.width  = 1500;
+	this.height = 1500;
 
 	this.shots = new PoolManager(this, Shot);
 	this.addObject(this.shots);
@@ -33,6 +32,9 @@ util.inherit(SceneStg, base_scene);
 SceneStg.prototype.init = function(){
 	base_scene.prototype.init.apply(this, arguments);
 	this.enemy_appear.init();
+
+	this.x = -this.chara.x + this.core.width/2;
+	this.y = -this.chara.y + this.core.height/2;
 };
 
 SceneStg.prototype.beforeDraw = function(){
@@ -42,26 +44,23 @@ SceneStg.prototype.beforeDraw = function(){
 	this.enemy_appear.exec();
 
 	if(this.core.isKeyDown(CONSTANT.BUTTON_Z)) {
-		var x = this.chara.calcMoveX();
-		var y = this.chara.calcMoveY();
-
-		this.stage.x -= x;
-		this.stage.y -= y;
-
-		// forbid chara out of display
-		if(this.chara.x < this.stage.leftX()) {
-			this.stage.x = this.chara.x;
+		// forbid chara out of stage
+		if(this.chara.x < 0) {
+			this.chara.x = 0;
 		}
-		else if(this.chara.x > this.stage.rightX()) {
-			this.stage.x = this.chara.x - this.stage.width;
+		else if(this.chara.x > this.width) {
+			this.chara.x = this.width;
 		}
-		if(this.chara.y < this.stage.upY()) {
-			this.stage.y = this.chara.y;
+		if(this.chara.y < 0) {
+			this.chara.y = 0;
 		}
-		else if(this.chara.y > this.stage.downY()) {
-			this.stage.y = this.chara.y - this.stage.height;
+		else if(this.chara.y > this.height) {
+			this.chara.y = this.height;
 		}
 
+		// scrolling background
+		this.x = -this.chara.x + this.core.width/2;
+		this.y = -this.chara.y + this.core.height/2;
 	}
 
 };
@@ -71,7 +70,17 @@ SceneStg.prototype.draw = function(){
 
 	// draw background color
 	ctx.fillStyle = util.hexToRGBString("E2FFFC");
-	ctx.fillRect(0, 0, this.core.width, this.core.height);
+	ctx.fillRect(0, 0, this.width, this.height);
+
+	// bars which enclose stage
+	var BAR_SIZE = 10;
+
+	ctx.fillStyle = util.hexToRGBString("608C87");
+
+	ctx.fillRect(this.x, this.y, BAR_SIZE, this.height);
+	ctx.fillRect(this.x + BAR_SIZE, this.y, this.width, BAR_SIZE);
+	ctx.fillRect(this.x + this.width, this.y + BAR_SIZE, BAR_SIZE, this.height);
+	ctx.fillRect(this.x, this.y + this.height, this.width, BAR_SIZE);
 
 	// draw objects
 	base_scene.prototype.draw.apply(this, arguments);

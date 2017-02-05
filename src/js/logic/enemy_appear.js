@@ -27,8 +27,8 @@ EnemyAppear.prototype.create = function() {
 	var magnitude = Math.floor(Math.random() * 5 + 1);
 	var hp = Math.floor(Math.random() * 50);
 	for (var i = 0; i < 3; i++) {
-		var x = Math.floor(Math.random() * this.scene.core.width);
-		var y = Math.floor(Math.random() * this.scene.core.height);
+		var x = Math.floor(Math.random() * this.chara.x + 100);
+		var y = Math.floor(Math.random() * this.chara.y + 100);
 		this.enemies.create(x, y, magnitude, hp);
 	}
 };

@@ -17,8 +17,8 @@ util.inherit(Chara, sprite);
 Chara.prototype.init = function(){
 	sprite.prototype.init.apply(this, arguments);
 
-	this.x = this.core.width/2;
-	this.y = this.core.height/2;
+	this.x = this.scene.width/2;
+	this.y = this.scene.height/2;
 };
 
 var BUTTON_UP_RIGHT_MAX_THETA = 315;
@@ -67,23 +67,22 @@ Chara.prototype.beforeDraw = function(){
 
 	// shot automatically
 	if (this.frame_count % SHOT_SPAN === 0) {
-		var magnitude = 12;
+		var span = 15;
+
+		// shot speed
+		var magnitude = 15;
+
 		var theta = this.velocity.theta;
-		this.scene.shots.create(this.x, this.y, theta);
-		this.scene.shots.create(this.x, this.y, theta).moveByVelocity({magnitude: magnitude, theta: theta + 90});
-		this.scene.shots.create(this.x, this.y, theta).moveByVelocity({magnitude: magnitude, theta: theta - 90});
+		this.scene.shots.create(this.x, this.y, magnitude, theta);
+		this.scene.shots.create(this.x, this.y, magnitude, theta).moveByVelocity({magnitude: span, theta: theta + 90});
+		this.scene.shots.create(this.x, this.y, magnitude, theta).moveByVelocity({magnitude: span, theta: theta - 90});
 	}
 };
 Chara.prototype.move = function() {
-	// chara doesn't move because stage does move
-};
+	// chara moves only pressed Z
+	if(!this.core.isKeyDown(CONSTANT.BUTTON_Z)) return;
 
-Chara.prototype.calcMoveX = function() {
-	return util.calcMoveXByVelocity(this.velocity);
-};
-
-Chara.prototype.calcMoveY = function() {
-	return util.calcMoveYByVelocity(this.velocity);
+	sprite.prototype.move.apply(this, arguments);
 };
 
 Chara.prototype.spriteName = function(){
