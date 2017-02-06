@@ -16,6 +16,8 @@ var SceneStg = function(core) {
 	this.width  = 1500;
 	this.height = 1500;
 
+	this.score = 0;
+
 	this.shots = new PoolManager(this, Shot);
 	this.addObject(this.shots);
 
@@ -32,6 +34,8 @@ util.inherit(SceneStg, base_scene);
 SceneStg.prototype.init = function(){
 	base_scene.prototype.init.apply(this, arguments);
 	this.enemy_appear.init();
+
+	this.score = 0;
 
 	this.x = -this.chara.x + this.core.width/2;
 	this.y = -this.chara.y + this.core.height/2;
@@ -70,6 +74,7 @@ SceneStg.prototype.beforeDraw = function(){
 SceneStg.prototype.draw = function(){
 	var ctx = this.core.ctx;
 
+	ctx.save();
 	// draw background color
 	ctx.fillStyle = util.hexToRGBString("E2FFFC");
 	ctx.fillRect(0, 0, this.width, this.height);
@@ -83,9 +88,18 @@ SceneStg.prototype.draw = function(){
 	ctx.fillRect(this.x + BAR_SIZE, this.y, this.width, BAR_SIZE);
 	ctx.fillRect(this.x + this.width, this.y + BAR_SIZE, BAR_SIZE, this.height);
 	ctx.fillRect(this.x, this.y + this.height, this.width, BAR_SIZE);
+	ctx.restore();
 
 	// draw objects
 	base_scene.prototype.draw.apply(this, arguments);
+
+	// draw score
+	ctx.save();
+	ctx.fillStyle = 'rgb( 6, 40, 255 )';
+	ctx.textAlign = 'left';
+	ctx.font = "16px Arial";
+	ctx.fillText("Score: " + this.score, 30, 30);
+	ctx.restore();
 };
 
 module.exports = SceneStg;
