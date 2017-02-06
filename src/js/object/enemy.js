@@ -22,8 +22,18 @@ Enemy.prototype.init = function(x, y, magnitude, hp) {
 	this.x = x;
 	this.y = y;
 	this.setVelocity({magnitude: magnitude, theta: 0});
-};
 
+	// set theta
+	this.aimToChara();
+};
+Enemy.prototype.beforeDraw = function() {
+	base_object.prototype.beforeDraw.apply(this, arguments);
+
+	// set theta
+	if (this.frame_count % 10 === 0) {
+		this.aimToChara();
+	}
+};
 Enemy.prototype.draw = function() {
 	base_object.prototype.draw.apply(this, arguments);
 
@@ -108,6 +118,16 @@ Enemy.prototype.die = function() {
 	// create effect
 	//this.stage.effect_manager.create(this.x, this.y);
 };
+
+Enemy.prototype.aimToChara = function() {
+	var character = this.scene.chara;
+
+	var ax = character.x - this.x;
+	var ay = character.y - this.y;
+
+	this.velocity.theta = util.radianToTheta(Math.atan2(ay, ax));
+};
+
 
 
 
