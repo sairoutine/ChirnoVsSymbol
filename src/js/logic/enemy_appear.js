@@ -21,11 +21,11 @@ EnemyAppear.prototype.update = function() {
 	this.frame_count++;
 };
 EnemyAppear.prototype.is_occur = function() {
-	return this.frame_count % 20 === 0;
+	return this.frame_count % 50 === 0;
 };
 EnemyAppear.prototype.create = function() {
 	var magnitude = Math.floor(Math.random() * 5 + 1);
-	var hp = Math.floor(Math.random() * 50);
+	var hp = Math.floor(Math.random() *5);
 	for (var i = 0; i < 3; i++) {
 		var x = Math.floor(Math.random() * this.chara.x + 100);
 		var y = Math.floor(Math.random() * this.chara.y + 100);
