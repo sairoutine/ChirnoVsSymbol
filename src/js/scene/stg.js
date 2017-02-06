@@ -64,6 +64,7 @@ SceneStg.prototype.beforeDraw = function(){
 	}
 
 	this.enemies.checkCollisionWithManager(this.shots);
+	this.enemies.checkCollisionWithObject(this.chara);
 };
 
 SceneStg.prototype.draw = function(){

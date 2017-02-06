@@ -85,6 +85,16 @@ Chara.prototype.move = function() {
 	sprite.prototype.move.apply(this, arguments);
 };
 
+Chara.prototype.onCollision = function(){
+	this.die();
+};
+
+Chara.prototype.die = function(){
+	console.log("die!");
+};
+
+
+
 Chara.prototype.spriteName = function(){
 	return "chara";
 };
