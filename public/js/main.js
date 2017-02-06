@@ -728,11 +728,11 @@ EnemyAppear.prototype.update = function() {
 	this.frame_count++;
 };
 EnemyAppear.prototype.is_occur = function() {
-	return this.frame_count % 20 === 0;
+	return this.frame_count % 50 === 0;
 };
 EnemyAppear.prototype.create = function() {
 	var magnitude = Math.floor(Math.random() * 5 + 1);
-	var hp = Math.floor(Math.random() * 50);
+	var hp = Math.floor(Math.random() *5);
 	for (var i = 0; i < 3; i++) {
 		var x = Math.floor(Math.random() * this.chara.x + 100);
 		var y = Math.floor(Math.random() * this.chara.y + 100);
@@ -894,6 +894,16 @@ Chara.prototype.move = function() {
 	sprite.prototype.move.apply(this, arguments);
 };
 
+Chara.prototype.onCollision = function(){
+	this.die();
+};
+
+Chara.prototype.die = function(){
+	console.log("die!");
+};
+
+
+
 Chara.prototype.spriteName = function(){
 	return "chara";
 };
@@ -938,8 +948,18 @@ Enemy.prototype.init = function(x, y, magnitude, hp) {
 	this.x = x;
 	this.y = y;
 	this.setVelocity({magnitude: magnitude, theta: 0});
-};
 
+	// set theta
+	this.aimToChara();
+};
+Enemy.prototype.beforeDraw = function() {
+	base_object.prototype.beforeDraw.apply(this, arguments);
+
+	// set theta
+	if (this.frame_count % 10 === 0) {
+		this.aimToChara();
+	}
+};
 Enemy.prototype.draw = function() {
 	base_object.prototype.draw.apply(this, arguments);
 
@@ -1025,6 +1045,16 @@ Enemy.prototype.die = function() {
 	//this.stage.effect_manager.create(this.x, this.y);
 };
 
+Enemy.prototype.aimToChara = function() {
+	var character = this.scene.chara;
+
+	var ax = character.x - this.x;
+	var ay = character.y - this.y;
+
+	this.velocity.theta = util.radianToTheta(Math.atan2(ay, ax));
+};
+
+
 
 
 
@@ -1049,6 +1079,27 @@ Shot.prototype.init = function(x, y, magnitude, theta) {
 	this.y = y;
 	this.setVelocity({magnitude: magnitude, theta: theta});
 };
+Shot.prototype.beforeDraw = function( ) {
+	sprite.prototype.beforeDraw.apply(this, arguments);
+
+	if(this.isOutOfStage()) {
+		this.scene.shots.remove(this.id);
+	}
+};
+Shot.prototype.isOutOfStage = function( ) {
+	if(this.x < 0 ||
+	   this.y < 0 ||
+	   this.x > this.scene.width  ||
+	   this.y > this.scene.height
+	  ) {
+		return true;
+	}
+
+	return false;
+};
+
+
+
 
 Shot.prototype.moveByVelocity = function(velocity){
 	var x = util.calcMoveXByVelocity(velocity);
@@ -1148,6 +1199,8 @@ var SceneStg = function(core) {
 	this.width  = 1500;
 	this.height = 1500;
 
+	this.score = 0;
+
 	this.shots = new PoolManager(this, Shot);
 	this.addObject(this.shots);
 
@@ -1164,6 +1217,8 @@ util.inherit(SceneStg, base_scene);
 SceneStg.prototype.init = function(){
 	base_scene.prototype.init.apply(this, arguments);
 	this.enemy_appear.init();
+
+	this.score = 0;
 
 	this.x = -this.chara.x + this.core.width/2;
 	this.y = -this.chara.y + this.core.height/2;
@@ -1196,11 +1251,13 @@ SceneStg.prototype.beforeDraw = function(){
 	}
 
 	this.enemies.checkCollisionWithManager(this.shots);
+	this.enemies.checkCollisionWithObject(this.chara);
 };
 
 SceneStg.prototype.draw = function(){
 	var ctx = this.core.ctx;
 
+	ctx.save();
 	// draw background color
 	ctx.fillStyle = util.hexToRGBString("E2FFFC");
 	ctx.fillRect(0, 0, this.width, this.height);
@@ -1214,9 +1271,18 @@ SceneStg.prototype.draw = function(){
 	ctx.fillRect(this.x + BAR_SIZE, this.y, this.width, BAR_SIZE);
 	ctx.fillRect(this.x + this.width, this.y + BAR_SIZE, BAR_SIZE, this.height);
 	ctx.fillRect(this.x, this.y + this.height, this.width, BAR_SIZE);
+	ctx.restore();
 
 	// draw objects
 	base_scene.prototype.draw.apply(this, arguments);
+
+	// draw score
+	ctx.save();
+	ctx.fillStyle = 'rgb( 6, 40, 255 )';
+	ctx.textAlign = 'left';
+	ctx.font = "16px Arial";
+	ctx.fillText("Score: " + this.score, 30, 30);
+	ctx.restore();
 };
 
 module.exports = SceneStg;
