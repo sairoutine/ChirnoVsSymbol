@@ -15,6 +15,27 @@ Shot.prototype.init = function(x, y, magnitude, theta) {
 	this.y = y;
 	this.setVelocity({magnitude: magnitude, theta: theta});
 };
+Shot.prototype.beforeDraw = function( ) {
+	sprite.prototype.beforeDraw.apply(this, arguments);
+
+	if(this.isOutOfStage()) {
+		this.scene.shots.remove(this.id);
+	}
+};
+Shot.prototype.isOutOfStage = function( ) {
+	if(this.x < 0 ||
+	   this.y < 0 ||
+	   this.x > this.scene.width  ||
+	   this.y > this.scene.height
+	  ) {
+		return true;
+	}
+
+	return false;
+};
+
+
+
 
 Shot.prototype.moveByVelocity = function(velocity){
 	var x = util.calcMoveXByVelocity(velocity);
