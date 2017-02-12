@@ -12,13 +12,20 @@ SceneLoading.prototype.init = function() {
 	base_scene.prototype.init.apply(this, arguments);
 	this.core.image_loader.loadImage("chara", "./image/chirno.png");
 	this.core.image_loader.loadImage("shot", "./image/shot.png");
+
+	// sample
+	this.core.image_loader.loadImage("player", "./image/1player.png");
+	this.core.image_loader.loadImage("block", "./image/brook.png");
+	this.core.image_loader.loadImage("hashigo", "./image/hasigo.png");
 };
 
 SceneLoading.prototype.beforeDraw = function() {
 	base_scene.prototype.beforeDraw.apply(this, arguments);
 
 	if (this.core.image_loader.isAllLoaded()) {
-		this.core.changeScene("stg");
+		// sample
+		this.core.changeScene("sample");
+		//this.core.changeScene("stg");
 	}
 };
 SceneLoading.prototype.draw = function(){
